@@ -1,6 +1,5 @@
 package com.demo.auth.service;
 
-import com.demo.auth.dto.LoginRequest;
 import com.demo.auth.dto.SignupRequest;
 import com.demo.auth.entity.User;
 import com.demo.auth.repository.UserRepository;
@@ -29,5 +28,8 @@ public class UserService {
         userRepository.save(user);
     }
 
-  
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
 }

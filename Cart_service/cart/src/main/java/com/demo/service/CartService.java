@@ -1,4 +1,5 @@
 package com.demo.cart.service;
+
 import com.demo.cart.dto.CartItemRequest;
 import com.demo.cart.dto.CartResponse;
 import com.demo.cart.entity.Cart;
@@ -6,8 +7,8 @@ import com.demo.cart.entity.CartItem;
 import com.demo.cart.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,9 +95,9 @@ public class CartService {
 
     private Long getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof String) {
-            return Long.parseLong((String) principal);
+        if (principal instanceof Long) {
+            return (Long) principal;
         }
-        throw new RuntimeException("Invalid user context");
+        throw new RuntimeException("Invalid user context: " + principal.getClass().getName());
     }
-} 
+}

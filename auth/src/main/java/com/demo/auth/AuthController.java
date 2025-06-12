@@ -1,11 +1,12 @@
 package com.demo.auth.controller;
-import com.demo.auth.entity.User;
 import com.demo.auth.dto.JwtResponse;
-import com.demo.auth.entity.RefreshToken;
-import com.demo.auth.repository.RefreshTokenRepository;
-import com.demo.auth.service.RefreshTokenService;
 import com.demo.auth.dto.LoginRequest;
 import com.demo.auth.dto.SignupRequest;
+import com.demo.auth.dto.UserInfo;
+import com.demo.auth.entity.RefreshToken;
+import com.demo.auth.entity.User;
+import com.demo.auth.repository.RefreshTokenRepository;
+import com.demo.auth.service.RefreshTokenService;
 import com.demo.auth.service.UserService;
 import com.demo.auth.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Collections;
 
 @RestController
@@ -30,6 +32,7 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenService refreshTokenService;
+
     @Lazy
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -53,7 +56,7 @@ public class AuthController {
             UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
             String jwt = jwtUtil.generateToken(userDetails.getUsername());
             RefreshToken refreshTokenObject = refreshTokenService.createRefreshToken(userDetails.getUsername());
-            String refreshToken = refreshTokenObject.getToken(); 
+            String refreshToken = refreshTokenObject.getToken();
 
             JwtResponse jwtResponse = JwtResponse.builder()
                     .accessToken(jwt)
@@ -64,22 +67,20 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials: " + e.getMessage());
         }
     }
+
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(@RequestBody RefreshToken refreshTokenRequest) {
         try {
-           
             RefreshToken refreshTokenFromDb = refreshTokenService.findByToken(refreshTokenRequest.getToken())
                     .orElseThrow(() -> new RuntimeException("Refresh Token is not in the database!"));
 
-           
             if (refreshTokenService.verifyExpiration(refreshTokenFromDb)) {
                 User user = refreshTokenFromDb.getUser();
                 String newAccessToken = jwtUtil.generateToken(user.getEmail());
 
                 JwtResponse jwtResponse = JwtResponse.builder()
                         .accessToken(newAccessToken)
-                        .refreshToken(refreshTokenRequest.getToken()) 
-
+                        .refreshToken(refreshTokenRequest.getToken())
                         .build();
 
                 return ResponseEntity.ok(jwtResponse);
@@ -90,22 +91,37 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error refreshing token: " + e.getMessage());
         }
     }
+
     @PostMapping("/logout")
-     public ResponseEntity<?> logout(@RequestBody RefreshToken refreshTokenRequest) {
-     try {
-        
-        RefreshToken refreshTokenFromDb = refreshTokenService.findByToken(refreshTokenRequest.getToken())
-                .orElseThrow(() -> new RuntimeException("Refresh Token not found"));
+    public ResponseEntity<?> logout(@RequestBody RefreshToken refreshTokenRequest) {
+        try {
+            RefreshToken refreshTokenFromDb = refreshTokenService.findByToken(refreshTokenRequest.getToken())
+                    .orElseThrow(() -> new RuntimeException("Refresh Token not found"));
 
-      
-        refreshTokenService.delete(refreshTokenFromDb);
+            refreshTokenService.delete(refreshTokenFromDb);
 
-       
-        return ResponseEntity.ok("Logged out successfully");
-    } catch (RuntimeException e) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error logging out: " + e.getMessage());
+            return ResponseEntity.ok("Logged out successfully");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Error logging out: " + e.getMessage());
+        }
+    }
+
+  
+    @GetMapping("/userinfo")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtUtil.extractUsername(token);
+            User user = userService.findByEmail(email);
+
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            UserInfo userInfo = new UserInfo(user.getId(), user.getUsername(), user.getEmail());
+            return ResponseEntity.ok(userInfo);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token: " + e.getMessage());
+        }
     }
 }
-
-}
- 

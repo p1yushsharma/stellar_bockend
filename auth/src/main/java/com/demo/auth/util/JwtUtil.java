@@ -51,6 +51,7 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
           userRepository.findByEmail(username).ifPresent(user -> {
            claims.put("userId", user.getId());
+           claims.put("role", user.getRole());
            });
     
         return createToken(claims, username);

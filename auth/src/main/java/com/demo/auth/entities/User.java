@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(schema = "foodies_users",name = "users")
-@Data    
+@Table(schema = "foodies_users", name = "users")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -21,4 +21,13 @@ public class User {
     private String username;
 
     private String password;
+
+    private String role;
+
+    @PrePersist
+    public void setDefaultRole() {
+        if (this.role == null || this.role.isBlank()) {
+            this.role = "USER";
+        }
+    }
 }
