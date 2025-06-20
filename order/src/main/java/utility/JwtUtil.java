@@ -12,7 +12,7 @@ import javax.crypto.SecretKey;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.JWT_SECRET}")
     private String secret;
 
     private SecretKey secretKey;
@@ -25,12 +25,18 @@ public class JwtUtil {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public Claims extractClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+
+    public Claims parseToken(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+  
+    public Claims extractClaims(String token) {
+        return parseToken(token);
     }
 
     public String extractUserRole(String token) {
@@ -41,10 +47,7 @@ public class JwtUtil {
     public String extractUserId(String token) {
         Claims claims = extractClaims(token);
         Object userIdClaim = claims.get("userId");
-        if (userIdClaim == null) {
-            return null;
-        }
-        return userIdClaim.toString();
+        return userIdClaim != null ? userIdClaim.toString() : null;
     }
 
     public boolean isTokenValid(String token) {

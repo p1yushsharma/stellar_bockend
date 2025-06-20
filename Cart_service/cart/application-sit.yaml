@@ -1,0 +1,22 @@
+spring:
+  config:
+    activate:
+      on-profile: sit
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/foodies?cloudSqlInstance=stellar-463207:us-central1:stellar-1&socketFactory=com.google.cloud.sql.postgres.SocketFactory&useSSL=false
+    username: foodies_cart
+    password: c123456
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: foodies_carts
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+jwt:
+  JWT_SECRET: TaK+HaV^uvCHEFsEVfypW#7g9^k*Z8$V

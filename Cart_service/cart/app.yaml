@@ -1,0 +1,7 @@
+runtime: java17
+service: cart-service
+
+entrypoint: "java -Dspring.profiles.active=sit -jar target/cart-0.0.1-SNAPSHOT.jar"
+
+beta_settings:
+  cloud_sql_instances: stellar-463207:us-central1:stellar-1

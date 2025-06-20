@@ -2,24 +2,27 @@ package com.demo.auth.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.JwtParser;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import com.demo.auth.entity.User;
-import com.demo.auth.repository.UserRepository;
+
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import com.demo.auth.entity.User;
+import com.demo.auth.repository.UserRepository;
 
 @Component
 public class JwtUtil {
+
     @Autowired
     private UserRepository userRepository;
 
-    @Value("${jwt.secret}")
+    @Value("${jwt.JWT_SECRET}")
     private String SECRET_KEY;
 
     private SecretKey getSigningKey() {
@@ -27,8 +30,7 @@ public class JwtUtil {
     }
 
     public String extractUsername(String token) {
-        Claims claims = extractAllClaims(token);
-        return claims.getSubject();
+        return extractAllClaims(token).getSubject();
     }
 
     public Date extractExpiration(String token) {
@@ -36,40 +38,42 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
+        Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+        return claims;
     }
 
-    private Boolean isTokenExpired(String token) {
+    private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
-          userRepository.findByEmail(username).ifPresent(user -> {
-           claims.put("userId", user.getId());
-           claims.put("role", user.getRole());
-           });
-    
+        userRepository.findByEmail(username).ifPresent(user -> {
+            claims.put("userId", user.getId());
+            claims.put("role", user.getRole());
+        });
+
         return createToken(claims, username);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        long nowMillis = System.currentTimeMillis();
+        long expirationMillis = nowMillis + 1000 * 60 * 60; 
+
         return Jwts.builder()
-                .claims(claims)
-                .subject(subject)
-                .header().empty().add("typ","JWT")
-                .and()
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) 
-                .signWith(getSigningKey())
+                .setClaims(claims)
+                .setSubject(subject)
+                .setIssuedAt(new Date(nowMillis))
+                .setExpiration(new Date(expirationMillis))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public Boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         return !isTokenExpired(token);
     }
 }
