@@ -1,4 +1,5 @@
 package com.demo.product.util;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,8 +20,8 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-
     private final JwtUtil jwtUtil;
+
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -47,18 +48,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logger.debug("Extracted userId: {}, role: {}", userId, role);
 
                 String springRole = "ROLE_" + role;
-           UsernamePasswordAuthenticationToken authToken =
-           new UsernamePasswordAuthenticationToken(
-             Long.parseLong(userId), 
-            null,
-           List.of(new SimpleGrantedAuthority(springRole))
-    );
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userId,
+                                null,
+                                List.of(new SimpleGrantedAuthority(springRole))
+                        );
+
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 
                 logger.debug("SecurityContext set for user: {}", userId);
             } else {
-                logger.warn("Invalid token received"+ token);
+                logger.warn("Invalid token received: {}", token);
             }
         } else {
             logger.debug("No Bearer token found in Authorization header");

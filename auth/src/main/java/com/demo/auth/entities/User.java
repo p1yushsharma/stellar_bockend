@@ -20,10 +20,12 @@ public class User {
 
     private String username;
 
-    private String password;
+    private String password; 
 
     private String role;
 
+    private String provider;   
+    private String providerId; 
     @PrePersist
     public void setDefaultRole() {
         if (this.role == null || this.role.isBlank()) {

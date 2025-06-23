@@ -19,4 +19,6 @@ spring:
     show-sql: true
 
 jwt:
-  JWT_SECRET: TaK+HaV^uvCHEFsEVfypW#7g9^k*Z8$V
+  JWT_SECRET: "sD9fK!eR#8vP@wX2zL0qT&jM$1nG^cY7"
+google:
+  client-id: 867187817891-ga6228nh62eu8217fiec5hf5qknpi1f8.apps.googleusercontent.com

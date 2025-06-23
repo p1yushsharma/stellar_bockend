@@ -93,11 +93,18 @@ public class CartService {
                 .build();
     }
 
+    
     private Long getCurrentUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof Long) {
-            return (Long) principal;
+
+        if (principal instanceof String) {
+            try {
+                return Long.parseLong((String) principal);
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Invalid user ID format: " + principal);
+            }
         }
+
         throw new RuntimeException("Invalid user context: " + principal.getClass().getName());
     }
 }

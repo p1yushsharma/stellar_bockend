@@ -47,12 +47,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logger.debug("Extracted userId: {}, role: {}", userId, role);
 
                 String springRole = "ROLE_" + role;
-           UsernamePasswordAuthenticationToken authToken =
-           new UsernamePasswordAuthenticationToken(
-             Long.parseLong(userId), 
-            null,
-           List.of(new SimpleGrantedAuthority(springRole))
-    );
+               UsernamePasswordAuthenticationToken authToken =
+               new UsernamePasswordAuthenticationToken(
+               userId,
+               null,
+               List.of(new SimpleGrantedAuthority(springRole))
+               );
+
+
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 

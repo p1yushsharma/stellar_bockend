@@ -14,6 +14,7 @@ import javax.crypto.SecretKey;
 public class JwtUtil {
 
    @Value("${jwt.JWT_SECRET}")
+    
    private String secret;
 
 
